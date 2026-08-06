@@ -380,10 +380,18 @@
       practice.currentBlockStart = Date.now();
       practice.actualStarts[practice.currentIndex] = Date.now();
       practice.paused = false;
+      if(view === "block"){
+        viewBlockIndex = practice.currentIndex;
+        window.scrollTo(0,0);
+      }
     } else {
       practice.running = false;
       practice.complete = true;
       stopTicker();
+      if(view === "block"){
+        goHome();
+        return;
+      }
     }
     render();
   }
