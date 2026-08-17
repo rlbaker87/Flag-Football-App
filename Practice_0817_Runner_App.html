@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Practice - Aug 17</title>
+<style>
+  :root{
+    --turf:#2F5D3A;
+    --turf-dark:#20402A;
+    --chalk:#FAFAF7;
+    --navy:#1B2A4A;
+    --navy-soft:#5B6B85;
+    --amber:#D98A1F;
+    --amber-fill:#F3B95A;
+    --amber-bg:#FCEEDA;
+    --line:#E3E1D9;
+    --white:#FFFFFF;
+    --green-bg:#E7F0E3;
+    --green-line:#6E9A63;
+    --red:#B23B34;
+    --red-bg:#F5E4E2;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--chalk);color:var(--navy);}
+  button{font-family:inherit;cursor:pointer;}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--chalk);padding-bottom:24px;}
+
+  .topbar{background:var(--turf);color:var(--white);padding:0.9rem 1rem 0.9rem;position:relative;}
+  .home-link{position:absolute;top:0.9rem;right:1rem;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:var(--white);display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .home-link svg{width:17px;height:17px;}
+  .topbar h1{margin:0;font-size:17px;font-weight:700;}
+  .topbar .sub{margin:2px 0 0;font-size:12px;color:#CFE0D3;}
+
+  .start-btn{
+    display:block;width:calc(100% - 24px);margin:12px auto 4px;
+    background:var(--amber-fill);border:none;color:#5C3A08;
+    font-size:16px;font-weight:700;padding:16px 0;border-radius:14px;
+  }
+
+  /* Sticky timer bar */
+  .timerbar{position:sticky;top:0;z-index:25;background:var(--navy);color:var(--white);padding:10px 14px;}
+  .timerbar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .timerbar-label{font-size:12px;color:#B9C3D6;font-weight:600;}
+  .timerbar-name{font-size:15px;font-weight:700;margin-top:1px;}
+  .timerbar-clock{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .timerbar-clock.over{color:#F0A39F;}
+  .timerbar-row{display:flex;gap:6px;}
+  .tb-btn{flex:1;padding:9px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:var(--white);font-size:12.5px;font-weight:700;}
+  .tb-btn.next{background:var(--amber-fill);border-color:var(--amber-fill);color:#5C3A08;flex:1.4;}
+  .tb-btn.pause{background:rgba(255,255,255,0.16);}
+
+  .content{padding:12px 12px 4px;}
+
+  /* Block list */
+  .block-card{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;margin-bottom:9px;min-height:60px;
+  }
+  .block-card:active{background:var(--chalk);}
+  .block-card.now{border-color:var(--amber);background:var(--amber-bg);}
+  .block-card.done{opacity:0.6;}
+  .block-num{width:32px;height:32px;border-radius:9px;background:var(--amber-bg);color:#8A5410;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+  .block-card.done .block-num{background:var(--green-bg);color:#2E5424;}
+  .block-info{flex:1;min-width:0;}
+  .block-label{font-weight:700;font-size:14.5px;margin:0 0 2px;}
+  .block-time{font-size:11.5px;color:var(--navy-soft);margin:0;}
+  .icon-chev{width:18px;height:18px;flex-shrink:0;color:var(--navy-soft);}
+
+  /* Detail header */
+  .detail-topbar{background:var(--turf);color:var(--white);padding:10px 12px;display:flex;align-items:center;gap:10px;position:relative;}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
+  .icon-btn svg{width:20px;height:20px;}
+  .detail-titles{flex:1;min-width:0;}
+  .detail-titles .dname{font-size:17px;font-weight:700;margin:0;line-height:1.2;}
+  .detail-titles .dtime{font-size:11.5px;color:#CFE0D3;margin:1px 0 0;}
+
+  .diagram-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px;}
+  .steps-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;}
+  .steps-card ul{margin:0;padding-left:18px;}
+  .steps-card li{font-size:13.5px;line-height:1.5;margin-bottom:8px;color:var(--navy);}
+  .steps-card li:last-child{margin-bottom:0;}
+  .note-card{background:var(--amber-bg);border:1px solid #EAD2A3;border-radius:14px;padding:12px 14px;font-size:12.5px;color:#6B4A0E;line-height:1.5;}
+  .note-label{font-weight:700;margin:0 0 3px;}
+
+  .complete-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px 16px;text-align:center;margin-bottom:10px;}
+  .complete-card h2{margin:0 0 6px;font-size:17px;}
+  .complete-card p{margin:0 0 14px;font-size:13px;color:var(--navy-soft);}
+  .reset-btn{background:var(--white);border:1px solid var(--turf);color:var(--turf);font-size:13px;font-weight:700;padding:10px 18px;border-radius:9px;}
+
+  svg .icon-cone{fill:var(--amber-fill);stroke:var(--amber);}
+  svg .kid-circ{fill:var(--green-bg);stroke:var(--green-line);}
+  svg .coach-circ{fill:var(--amber-bg);stroke:var(--amber);}
+  svg .shark-circ{fill:var(--red-bg);stroke:var(--red);}
+  svg .def-circ{fill:var(--red-bg);stroke:var(--red);}
+  svg .lbl{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--navy);}
+  svg .lbl-sub{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--navy-soft);}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(function(){
+  var ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  var ICON_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+  var ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>';
+
+  function football(cx, cy, r){
+    r = r || 10;
+    return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+(r*0.6)+'" fill="#6B4226" stroke="#4A2D19" stroke-width="0.5"/>' +
+           '<line x1="'+(cx-r*0.5)+'" y1="'+cy+'" x2="'+(cx+r*0.5)+'" y2="'+cy+'" stroke="#F7F0E6" stroke-width="1"/>';
+  }
+  function cone(cx, cy){
+    return '<polygon class="icon-cone" points="'+cx+','+(cy-14)+' '+(cx+11)+','+(cy+9)+' '+(cx-11)+','+(cy+9)+'" stroke-width="0.75"/>';
+  }
+  function kid(cx, cy, label){
+    label = label || "K";
+    return '<circle class="kid-circ" cx="'+cx+'" cy="'+cy+'" r="13" stroke-width="0.75"/>' +
+           '<text class="lbl" x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700">'+label+'</text>';
+  }
+  function coach(cx, cy){
+    var s = '<circle class="coach-circ" cx="'+cx+'" cy="'+cy+'" r="15" stroke-width="0.75"/>';
+    s += '<path d="M'+(cx-7)+' '+(cy+3)+' Q'+(cx-7)+' '+(cy-6)+' '+cx+' '+(cy-6)+' Q'+(cx+7)+' '+(cy-6)+' '+(cx+7)+' '+(cy+3)+' Z" fill="var(--navy)"/>';
+    s += '<ellipse cx="'+(cx+3)+'" cy="'+(cy+3)+'" rx="9" ry="2.5" fill="var(--navy)"/>';
+    return s;
+  }
+  function shark(cx, cy){
+    return '<circle class="shark-circ" cx="'+cx+'" cy="'+cy+'" r="13" stroke-width="0.75"/>' +
+           '<text class="lbl" x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700">S</text>';
+  }
+  function defender(cx, cy, label){
+    label = label || "D";
+    return '<circle class="def-circ" cx="'+cx+'" cy="'+cy+'" r="13" stroke-width="0.75"/>' +
+           '<text class="lbl" x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700">'+label+'</text>';
+  }
+
+  function gate(cx, cy, gapWidth){
+    var half = gapWidth / 2;
+    return cone(cx - half, cy) + cone(cx + half, cy);
+  }
+
+  function xmark(cx, cy){
+    return '<text class="lbl" x="'+cx+'" y="'+(cy+6)+'" text-anchor="middle" font-size="18" font-weight="800">X</text>';
+  }
+
+  function O(cx, cy, label){
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="#FFFFFF" stroke="#111" stroke-width="2"/>' +
+           '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#111">'+label+'</text>';
+  }
+
+  var SVG_AGILITY_ROUTES =
+    '<svg width="100%" viewBox="0 0 320 420" role="img"><title>Agility into routes, tight cuts, no cones on the route itself</title>' +
+    '<text class="lbl-sub" x="160" y="18" text-anchor="middle" font-size="10.5">Agility zig-zag (2.5 yd downfield, ~5 yd lateral)</text>' +
+    kid(160,340,"K") +
+    '<path d="M160 326 L130 300 L190 265 L130 230 L190 195" fill="none" stroke="#C8C5B8" stroke-width="1.5" stroke-dasharray="4 4"/>' +
+    cone(130,300) + cone(190,265) + cone(130,230) + cone(190,195) +
+    '<text class="lbl-sub" x="215" y="300" text-anchor="start" font-size="9.5">10 yd total,</text>' +
+    '<text class="lbl-sub" x="215" y="314" text-anchor="start" font-size="9.5">tight cuts</text>' +
+    '<line x1="190" y1="181" x2="160" y2="130" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    '<text class="lbl" x="160" y="110" text-anchor="middle" font-size="11" font-weight="700">flows straight into that rep&#39;s route</text>' +
+    '<text class="lbl-sub" x="160" y="70" text-anchor="middle" font-size="10.5">No cones on the route itself - coach calls</text>' +
+    '<text class="lbl-sub" x="160" y="84" text-anchor="middle" font-size="10.5">the name, kid runs it from memory</text>' +
+    '<text class="lbl-sub" x="160" y="400" text-anchor="middle" font-size="10.5">Rotate through all 6: Go, Cross 0/5/10, Curl 5/10</text>' +
+    '</svg>';
+
+  var SVG_DEUCES =
+    '<svg width="100%" viewBox="0 0 340 260" role="img"><title>Deuces formation - W, X, Y, Z with X and Y set back a yard</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">Deuces - two left, two right</text>' +
+    '<line x1="30" y1="120" x2="310" y2="120" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    kid(60,120,"W") + kid(115,133,"X") + O(170,120,"C") + football(170,142,7) + kid(225,133,"Y") + kid(280,120,"Z") +
+    kid(195,185,"QB") +
+    kid(240,185,"RB") +
+    '<text class="lbl-sub" x="170" y="225" text-anchor="middle" font-size="10.5">X and Y set back 1 yard off the line - W, Z, and C stay on it</text>' +
+    '</svg>';
+
+  var SVG_DIAMOND_PBU =
+    '<svg width="100%" viewBox="0 0 320 350" role="img"><title>Diamond drill - defensive catching, intercept or knock down</title>' +
+    '<text class="lbl-sub" x="160" y="18" text-anchor="middle" font-size="10.5">Diamond Drill - defensive catching / PBU</text>' +
+    '<line x1="160" y1="50" x2="90" y2="175" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="90" y1="175" x2="160" y2="300" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="160" y1="50" x2="230" y2="175" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="230" y1="175" x2="160" y2="300" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    cone(160,50) + cone(160,300) + cone(90,175) + cone(230,175) +
+    defender(160,80,"D") +
+    '<text class="lbl-sub" x="160" y="104" text-anchor="middle" font-size="10.5">defender lines up here</text>' +
+    coach(160,270) + football(160,290,7) +
+    '<path d="M148 90 Q60 150 65 210" fill="none" stroke="#5B6B85" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrowdefpos1)"/>' +
+    '<path d="M150 258 Q75 220 68 213" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrowcross2)"/>' +
+    football(60,213,7) +
+    '<text class="lbl" x="160" y="325" text-anchor="middle" font-size="11" font-weight="700">Coach points, defender closes,</text>' +
+    '<text class="lbl" x="160" y="339" text-anchor="middle" font-size="11" font-weight="700">intercepts or knocks it down</text>' +
+    '</svg>';
+
+  var SVG_TACKLING_GATE =
+    '<svg width="100%" viewBox="0 0 340 400" role="img"><title>Breakdown and touch, diamond plus two outer lateral cones</title>' +
+    '<line x1="170" y1="50" x2="100" y2="175" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="100" y1="175" x2="170" y2="300" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="170" y1="50" x2="240" y2="175" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="240" y1="175" x2="170" y2="300" stroke="#C8C5B8" stroke-width="1.5"/>' +
+    '<line x1="100" y1="175" x2="60" y2="175" stroke="#C8C5B8" stroke-width="1" stroke-dasharray="2 3"/>' +
+    '<line x1="240" y1="175" x2="280" y2="175" stroke="#C8C5B8" stroke-width="1" stroke-dasharray="2 3"/>' +
+    '<text class="lbl-sub" x="80" y="165" text-anchor="middle" font-size="10">~5 yd</text>' +
+    '<text class="lbl-sub" x="260" y="165" text-anchor="middle" font-size="10">~5 yd</text>' +
+    cone(170,50) + cone(170,300) + cone(100,175) + cone(240,175) + cone(60,175) + cone(280,175) +
+    defender(170,85,"T") +
+    '<text class="lbl-sub" x="170" y="106" text-anchor="middle" font-size="10">T = Tackler</text>' +
+    kid(170,265,"R") +
+    '<text class="lbl-sub" x="170" y="245" text-anchor="middle" font-size="10">R = Runner</text>' +
+    '<path d="M170 98 Q140 140 105 172" fill="none" stroke="#B23B34" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrowbreakdown1)"/>' +
+    '<path d="M170 252 Q140 220 108 180" fill="none" stroke="#6E9A63" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrowbreakdown2)"/>' +
+    '<text class="lbl" x="145" y="200" text-anchor="middle" font-size="10.5" font-weight="700">this rep: runner picks</text>' +
+    '<text class="lbl" x="145" y="214" text-anchor="middle" font-size="10.5" font-weight="700">the left cone gap</text>' +
+    '<text class="lbl-sub" x="170" y="335" text-anchor="middle" font-size="10.5">Both close toward the middle of whichever side cone</text>' +
+    '<text class="lbl-sub" x="170" y="349" text-anchor="middle" font-size="10.5">the runner picks - left or right, either side each rep</text>' +
+    '</svg>';
+
+  var SVG_232_DEFENSE =
+    '<svg width="100%" viewBox="0 0 340 320" role="img"><title>2-3-2 defense install, three depth bands</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">2-3-2 - X marks each spot this practice</text>' +
+    '<text class="lbl-sub" x="300" y="70" text-anchor="middle" font-size="10">10 yd</text>' +
+    xmark(110,70) + xmark(230,70) +
+    '<text class="lbl-sub" x="300" y="150" text-anchor="middle" font-size="10">5 yd</text>' +
+    xmark(70,150) + xmark(170,150) + xmark(270,150) +
+    '<text class="lbl-sub" x="300" y="220" text-anchor="middle" font-size="10">0 yd (line)</text>' +
+    xmark(110,220) + xmark(230,220) +
+    '<line x1="30" y1="270" x2="310" y2="270" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    '<text class="lbl-sub" x="170" y="290" text-anchor="middle" font-size="10.5">Offense at the line of scrimmage</text>' +
+    football(170,265,7) +
+    '<text class="lbl" x="170" y="305" text-anchor="middle" font-size="10.5" font-weight="700">Walk it first, then run slow live reps</text>' +
+    '</svg>';
+
+  var SVG_CUTOFF =
+    '<svg width="100%" viewBox="0 0 340 420" role="img"><title>Cut-off pursuit drill, defenders race the cones</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">Cut-off / Pursuit - beat the runner to each cone</text>' +
+    cone(60,295) + cone(60,225) + cone(60,155) + cone(60,85) +
+    cone(280,295) + cone(280,225) + cone(280,155) + cone(280,85) +
+    '<text class="lbl-sub" x="40" y="300" text-anchor="end" font-size="9">5</text>' +
+    '<text class="lbl-sub" x="40" y="230" text-anchor="end" font-size="9">10</text>' +
+    '<text class="lbl-sub" x="40" y="160" text-anchor="end" font-size="9">15</text>' +
+    '<text class="lbl-sub" x="40" y="90" text-anchor="end" font-size="9">20</text>' +
+    '<line x1="30" y1="365" x2="310" y2="365" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    football(170,360,7) +
+    kid(170,365,"R") +
+    '<path d="M170 355 L60 355 L60 100" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    xmark(130,350) + xmark(210,350) +
+    xmark(95,295) + xmark(170,295) + xmark(245,295) +
+    xmark(130,225) + xmark(210,225) +
+    '<text class="lbl-sub" x="170" y="390" text-anchor="middle" font-size="10">Coach sends the runner left or right</text>' +
+    '<text class="lbl-sub" x="170" y="404" text-anchor="middle" font-size="10">Defenders on that side must beat them to each cone</text>' +
+    '</svg>';
+
+  var ARROW_DEFS =
+    '<svg width="0" height="0" style="position:absolute">' +
+    '<defs>' +
+    '<marker id="arrowdown1" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#C8C5B8" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowcross1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#C8C5B8" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowcross2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--amber)" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowbreakdown1" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#B23B34" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowbreakdown2" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#6E9A63" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowdefpos1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5B6B85" stroke-width="1.5"/></marker>' +
+    '</defs></svg>';
+
+  var BLOCKS = [
+    {
+      id:"offwarmup", label:"Offensive Warm-up", plannedTime:"6:00", duration:12, diagram:SVG_AGILITY_ROUTES,
+      diagramLabel1:"Group A - Agility + Routes",
+      steps:[
+        "Split into two groups. Switch at the 6-minute mark so both groups hit both stations.",
+        "Group A - Agility + Routes: zig-zag through cones (2.5 yd downfield, ~5 yd lateral, ~10 yd total), then flow straight into that rep's route with no stop.",
+        "Routes run with no cones this time - coach calls the name, kid runs it from memory. Rotate through all 6: Go, Cross 0/5/10-yd, Curl 5/10-yd.",
+        "Group B - Catching: straight tosses at 2, 5, and 10 yards, no route shapes involved - pure hands technique."
+      ],
+      note:"This doubles as your actual warm-up - no separate movement-prep block needed tonight."
+    },
+    {
+      id:"water1", label:"Water break", plannedTime:"6:12", duration:1, diagram:null,
+      steps:["Quick sip, keep the momentum."],
+      note:null
+    },
+    {
+      id:"offreps", label:"Offensive Practice Reps", plannedTime:"6:13", duration:14, diagram:SVG_DEUCES,
+      steps:[
+        "Same routes, now with catches added back in - not just movement.",
+        "Then live from the line of scrimmage - Deuces formation: W, X, Y, Z left to right, with X and Y set back 1 yard off the line.",
+        "Keep it basic tonight - no formation variations, just clean reps in the base look."
+      ],
+      note:"Watch your QB candidate here - real snaps, real reads, still no live rush."
+    },
+    {
+      id:"water2", label:"Water break", plannedTime:"6:27", duration:2, diagram:null,
+      steps:["Real water, real rest - it's hot out."],
+      note:null
+    },
+    {
+      id:"defwarmup", label:"Defensive Warm-up", plannedTime:"6:29", duration:10, diagram:SVG_DIAMOND_PBU, diagram2:SVG_TACKLING_GATE,
+      diagramLabel1:"Group A - Diamond Drill", diagramLabel2:"Group B - Tackling Drill",
+      steps:[
+        "Split into two groups. Switch at the 5-minute mark.",
+        "Diamond Drill - defensive catching: coach points, defender reacts and closes, ball comes out. Win condition is intercept or knock it down, not catch it like a receiver.",
+        "Tackling Drill - same diamond as before: tackler (T) at top, runner (R) at bottom with the ball, two outer cones ~5 yd past each side. Both close toward the middle of whichever side cone the runner picks - runner tries to make the tackler miss, tackler chops feet, stays low, stays square, then touches."
+      ],
+      note:"Diamond Drill is purely defensive catching now - different coaching language than the offensive version, worth being explicit about with the kids."
+    },
+    {
+      id:"water3", label:"Water break", plannedTime:"6:39", duration:1, diagram:null,
+      steps:["Quick reset before the defensive install."],
+      note:null
+    },
+    {
+      id:"defpractice", label:"Defensive Practice - 2-3-2 install", plannedTime:"6:40", duration:10, diagram:SVG_232_DEFENSE,
+      steps:[
+        "X's mark each defender's spot this practice only - a training-wheel visual aid while the alignment is brand new.",
+        "2 defenders at the line, 3 at five yards, 2 at ten yards.",
+        "Walk it first at no speed - everyone just stands in their spot so \"home\" is visually obvious.",
+        "Then run actual offense (Cross/Go/Curl) against it slowly - defenders only leave their spot once the ball is clearly heading their way.",
+        "Kids not currently on defense run simple simulated offense - light, no-pressure movement - so the defense gets real reps to react to.",
+        "Catch = pursue cue. Everyone swarms, one-hand touch to finish."
+      ],
+      note:"Setup is quick with the cones already down from Defensive Warm-up - don't over-teach the reads tonight, just get the spots to stick."
+    },
+    {
+      id:"cutoff", label:"Cut-off / Pursuit", plannedTime:"6:50", duration:6, diagram:SVG_CUTOFF,
+      steps:[
+        "Same 2-3-2 spots, still set from Defensive Practice.",
+        "Coach sends the ball-carrier left or right to the sideline, then upfield past cones at 5/10/15/20.",
+        "Every defender on that side has to beat the runner to each cone - take the angle, don't just chase in a straight line.",
+        "That's the actual pursuit skill, made physical instead of abstract."
+      ],
+      note:"They don't need to know it's cardio - they just know cut-off and pursue."
+    },
+    {
+      id:"huddle", label:"Huddle / wrap-up", plannedTime:"6:56", duration:4, diagram:null,
+      steps:[
+        "Team cheer.",
+        "Remind them what's new tonight: the Curl route, and their first defense - the 2-3-2.",
+        "Next practice: half-line scrimmage work begins."
+      ],
+      note:"Games are getting close - first one is 8/29. This install needs to stick, not much room to re-teach it from scratch."
+    }
+  ];
+
+  var view = "home";
+  var viewBlockIndex = null;
+
+  var practice = {
+    running:false,
+    complete:false,
+    currentIndex:-1,
+    currentBlockStart:null,
+    paused:false,
+    pausedAt:null,
+    durations: BLOCKS.map(function(b){ return b.duration; }),
+    actualStarts: []
+  };
+
+  var tickHandle = null;
+  var audioCtx = null;
+
+  function beep(){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = 880;
+      g.gain.value = 0.001;
+      o.connect(g); g.connect(audioCtx.destination);
+      var now = audioCtx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      o.start(now); o.stop(now + 0.55);
+      var o2 = audioCtx.createOscillator();
+      var g2 = audioCtx.createGain();
+      o2.type = "sine"; o2.frequency.value = 1180;
+      g2.gain.value = 0.001;
+      o2.connect(g2); g2.connect(audioCtx.destination);
+      g2.gain.exponentialRampToValueAtTime(0.22, now + 0.6);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 1.05);
+      o2.start(now + 0.58); o2.stop(now + 1.1);
+    }catch(e){}
+  }
+
+  function fmtClock(ts){
+    var d = new Date(ts);
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; if(h === 0) h = 12;
+    return h + ":" + (m < 10 ? "0" : "") + m + " " + ampm;
+  }
+  function fmtCountdown(ms){
+    var neg = ms < 0;
+    var abs = Math.abs(ms);
+    var totalSec = Math.floor(abs / 1000);
+    var mm = Math.floor(totalSec / 60);
+    var ss = totalSec % 60;
+    return (neg ? "-" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+
+  function scheduledStart(i){
+    if(!practice.running && practice.currentIndex === -1) return null;
+    if(i < practice.currentIndex) return practice.actualStarts[i] || null;
+    if(i === practice.currentIndex) return practice.currentBlockStart;
+    var t = practice.currentBlockStart + practice.durations[practice.currentIndex] * 60000;
+    for(var k = practice.currentIndex + 1; k < i; k++){
+      t += practice.durations[k] * 60000;
+    }
+    return t;
+  }
+
+  function nowRef(){
+    return practice.paused ? practice.pausedAt : Date.now();
+  }
+
+  function startPractice(){
+    practice.running = true;
+    practice.complete = false;
+    practice.currentIndex = 0;
+    practice.currentBlockStart = Date.now();
+    practice.paused = false;
+    practice.actualStarts = [Date.now()];
+    practice.bellPlayedIndex = -1;
+    startTicker();
+    render();
+  }
+
+  function nextBlock(){
+    if(practice.currentIndex < BLOCKS.length - 1){
+      practice.currentIndex++;
+      practice.currentBlockStart = Date.now();
+      practice.actualStarts[practice.currentIndex] = Date.now();
+      practice.paused = false;
+      if(view === "block"){
+        viewBlockIndex = practice.currentIndex;
+        window.scrollTo(0,0);
+      }
+    } else {
+      practice.running = false;
+      practice.complete = true;
+      stopTicker();
+      if(view === "block"){
+        goHome();
+        return;
+      }
+    }
+    render();
+  }
+
+  function addTime(min){
+    practice.durations[practice.currentIndex] += min;
+    render();
+  }
+
+  function togglePause(){
+    if(practice.paused){
+      var pausedDur = Date.now() - practice.pausedAt;
+      practice.currentBlockStart += pausedDur;
+      practice.paused = false;
+    } else {
+      practice.paused = true;
+      practice.pausedAt = Date.now();
+    }
+    render();
+  }
+
+  function resetPractice(){
+    practice = {
+      running:false, complete:false, currentIndex:-1, currentBlockStart:null,
+      paused:false, pausedAt:null,
+      durations: BLOCKS.map(function(b){ return b.duration; }),
+      actualStarts: [], bellPlayedIndex:-1
+    };
+    stopTicker();
+    render();
+  }
+
+  function startTicker(){
+    stopTicker();
+    tickHandle = setInterval(function(){
+      if(practice.running && !practice.paused){
+        var remaining = practice.durations[practice.currentIndex] * 60000 - (Date.now() - practice.currentBlockStart);
+        if(remaining <= 0 && practice.bellPlayedIndex !== practice.currentIndex){
+          practice.bellPlayedIndex = practice.currentIndex;
+          beep();
+        }
+      }
+      render();
+    }, 1000);
+  }
+  function stopTicker(){
+    if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
+  }
+
+  function goHome(){ view = "home"; viewBlockIndex = null; render(); window.scrollTo(0,0); }
+  function openBlockView(i){ view = "block"; viewBlockIndex = i; render(); window.scrollTo(0,0); }
+
+  function esc(s){
+    var d = document.createElement("div");
+    d.textContent = s == null ? "" : s;
+    return d.innerHTML;
+  }
+
+  function renderTimerBar(){
+    var idx = practice.currentIndex;
+    var b = BLOCKS[idx];
+    var remaining = practice.durations[idx] * 60000 - (nowRef() - practice.currentBlockStart);
+    var isOver = remaining < 0;
+    var nextLabel = idx < BLOCKS.length - 1 ? BLOCKS[idx+1].label : "Finish";
+    var html = '<div class="timerbar">';
+    html += '<div class="timerbar-top"><div><p class="timerbar-label">' + (practice.paused ? "PAUSED" : "NOW") + '</p><p class="timerbar-name">' + esc(b.label) + '</p></div>';
+    html += '<div class="timerbar-clock' + (isOver ? " over" : "") + '">' + fmtCountdown(remaining) + '</div></div>';
+    html += '<div class="timerbar-row">';
+    html += '<button class="tb-btn" data-add="1">+1m</button>';
+    html += '<button class="tb-btn" data-add="3">+3m</button>';
+    html += '<button class="tb-btn" data-add="5">+5m</button>';
+    html += '<button class="tb-btn pause" data-action="pause">' + (practice.paused ? "Resume" : "Pause") + '</button>';
+    html += '<button class="tb-btn next" data-action="next">' + (idx === BLOCKS.length-1 ? "Finish" : "Next \u203a") + '</button>';
+    html += '</div></div>';
+    return html;
+  }
+
+  function render(){
+    var html = "";
+
+    if(view !== "block"){
+      html += '<div class="topbar"><a href="index.html" class="home-link" aria-label="Back to home">' + ICON_HOME + '</a><h1>Practice - Mon, Aug 17</h1><p class="sub">Beech Springs Middle - 6:00-7:00 PM</p></div>';
+    }
+
+    if(practice.running){
+      html += renderTimerBar();
+    }
+
+    if(view === "home"){
+      html += '<div class="content">';
+
+      if(!practice.running && !practice.complete){
+        html += '<button class="start-btn" data-action="start">Start practice</button>';
+      }
+
+      if(practice.complete){
+        html += '<div class="complete-card"><h2>Practice complete</h2><p>Nice work out there. Reset when you\'re ready for next time.</p><button class="reset-btn" data-action="reset">Reset for next practice</button></div>';
+      }
+
+      BLOCKS.forEach(function(b, i){
+        var isNow = practice.running && i === practice.currentIndex;
+        var isDone = practice.currentIndex > i || (practice.complete && true);
+        var cls = "block-card" + (isNow ? " now" : "") + (isDone && !isNow ? " done" : "");
+        var timeLabel;
+        if(practice.running || practice.complete){
+          if(i < practice.currentIndex || practice.complete){
+            timeLabel = practice.actualStarts[i] ? fmtClock(practice.actualStarts[i]) + " - done" : "done";
+          } else if(isNow){
+            timeLabel = "In progress";
+          } else {
+            timeLabel = "~" + fmtClock(scheduledStart(i)) + " (est.)";
+          }
+        } else {
+          timeLabel = b.plannedTime + " - " + b.duration + " min";
+        }
+        html += '<button class="' + cls + '" data-open="' + i + '">';
+        html += '<div class="block-num">' + (i+1) + '</div>';
+        html += '<div class="block-info"><p class="block-label">' + esc(b.label) + '</p><p class="block-time">' + timeLabel + '</p></div>';
+        html += '<span class="icon-chev">' + ICON_CHEV + '</span></button>';
+      });
+      html += '</div>';
+    }
+
+    if(view === "block" && viewBlockIndex != null){
+      var b2 = BLOCKS[viewBlockIndex];
+      html += '<div class="detail-topbar"><a href="index.html" class="home-link" aria-label="Back to home">' + ICON_HOME + '</a><button class="icon-btn" data-nav="home">' + ICON_BACK + '</button>';
+      html += '<div class="detail-titles"><p class="dname">' + esc(b2.label) + '</p><p class="dtime">' + esc(b2.plannedTime) + ' - ' + b2.duration + ' min</p></div></div>';
+      html += '<div class="content">';
+      html += '<div class="steps-card"><ul>';
+      b2.steps.forEach(function(s){ html += '<li>' + esc(s) + '</li>'; });
+      html += '</ul></div>';
+      if(b2.diagram){
+        html += '<p class="block-time" style="margin:0 0 6px 2px;font-weight:700;">' + (b2.diagramLabel1 || 'Diagram') + '</p>';
+        html += '<div class="diagram-card">' + b2.diagram + '</div>';
+      }
+      if(b2.diagram2){
+        html += '<p class="block-time" style="margin:14px 0 6px 2px;font-weight:700;">' + (b2.diagramLabel2 || 'Diagram (continued)') + '</p>';
+        html += '<div class="diagram-card">' + b2.diagram2 + '</div>';
+      }
+      if(b2.note){
+        html += '<div class="note-card"><p class="note-label">Coaching note</p><p>' + esc(b2.note) + '</p></div>';
+      }
+      html += '</div>';
+    }
+
+    document.getElementById("app").innerHTML = ARROW_DEFS + html;
+    attachHandlers();
+  }
+
+  function attachHandlers(){
+    var app = document.getElementById("app");
+    var startBtn = app.querySelector('[data-action="start"]');
+    if(startBtn) startBtn.addEventListener("click", startPractice);
+    var resetBtn = app.querySelector('[data-action="reset"]');
+    if(resetBtn) resetBtn.addEventListener("click", resetPractice);
+    var nextBtn = app.querySelector('[data-action="next"]');
+    if(nextBtn) nextBtn.addEventListener("click", nextBlock);
+    var pauseBtn = app.querySelector('[data-action="pause"]');
+    if(pauseBtn) pauseBtn.addEventListener("click", togglePause);
+    app.querySelectorAll('[data-add]').forEach(function(el){
+      el.addEventListener("click", function(){ addTime(parseInt(el.getAttribute("data-add"), 10)); });
+    });
+    app.querySelectorAll('[data-open]').forEach(function(el){
+      el.addEventListener("click", function(){ openBlockView(parseInt(el.getAttribute("data-open"), 10)); });
+    });
+    var navHome = app.querySelector('[data-nav="home"]');
+    if(navHome) navHome.addEventListener("click", goHome);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
