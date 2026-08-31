@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Practice - Aug 31</title>
+<style>
+  :root{
+    --turf:#2F5D3A;
+    --turf-dark:#20402A;
+    --chalk:#FAFAF7;
+    --navy:#1B2A4A;
+    --navy-soft:#5B6B85;
+    --amber:#D98A1F;
+    --amber-fill:#F3B95A;
+    --amber-bg:#FCEEDA;
+    --line:#E3E1D9;
+    --white:#FFFFFF;
+    --green-bg:#E7F0E3;
+    --green-line:#6E9A63;
+    --red:#B23B34;
+    --red-bg:#F5E4E2;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--chalk);color:var(--navy);}
+  button{font-family:inherit;cursor:pointer;}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--chalk);padding-bottom:24px;}
+
+  .topbar{background:var(--turf);color:var(--white);padding:0.9rem 1rem 0.9rem;position:relative;}
+  .home-link{position:absolute;top:0.9rem;right:1rem;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:var(--white);display:flex;align-items:center;justify-content:center;text-decoration:none;}
+  .home-link svg{width:17px;height:17px;}
+  .topbar h1{margin:0;font-size:17px;font-weight:700;}
+  .topbar .sub{margin:2px 0 0;font-size:12px;color:#CFE0D3;}
+
+  .start-btn{
+    display:block;width:calc(100% - 24px);margin:12px auto 4px;
+    background:var(--amber-fill);border:none;color:#5C3A08;
+    font-size:16px;font-weight:700;padding:16px 0;border-radius:14px;
+  }
+
+  .timerbar{position:sticky;top:0;z-index:25;background:var(--navy);color:var(--white);padding:10px 14px;}
+  .timerbar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .timerbar-label{font-size:12px;color:#B9C3D6;font-weight:600;}
+  .timerbar-name{font-size:15px;font-weight:700;margin-top:1px;}
+  .timerbar-clock{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .timerbar-clock.over{color:#F0A39F;}
+  .timerbar-clock.untimed{font-size:16px;font-weight:600;color:#CFE0D3;}
+  .timerbar-row{display:flex;gap:6px;}
+  .tb-btn{flex:1;padding:9px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:var(--white);font-size:12.5px;font-weight:700;}
+  .tb-btn.next{background:var(--amber-fill);border-color:var(--amber-fill);color:#5C3A08;flex:1.4;}
+  .tb-btn.pause{background:rgba(255,255,255,0.16);}
+
+  .content{padding:12px 12px 4px;}
+
+  .block-card{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;margin-bottom:9px;min-height:60px;
+  }
+  .block-card:active{background:var(--chalk);}
+  .block-card.now{border-color:var(--amber);background:var(--amber-bg);}
+  .block-card.done{opacity:0.6;}
+  .block-card.untimed{border-style:dashed;}
+  .block-num{width:32px;height:32px;border-radius:9px;background:var(--amber-bg);color:#8A5410;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+  .block-card.done .block-num{background:var(--green-bg);color:#2E5424;}
+  .block-info{flex:1;min-width:0;}
+  .block-label{font-weight:700;font-size:14.5px;margin:0 0 2px;}
+  .block-time{font-size:11.5px;color:var(--navy-soft);margin:0;}
+  .icon-chev{width:18px;height:18px;flex-shrink:0;color:var(--navy-soft);}
+
+  .detail-topbar{background:var(--turf);color:var(--white);padding:10px 12px;display:flex;align-items:center;gap:10px;position:relative;}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
+  .icon-btn svg{width:20px;height:20px;}
+  .detail-titles{flex:1;min-width:0;}
+  .detail-titles .dname{font-size:17px;font-weight:700;margin:0;line-height:1.2;}
+  .detail-titles .dtime{font-size:11.5px;color:#CFE0D3;margin:1px 0 0;}
+
+  .diagram-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px;}
+  .steps-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;}
+  .steps-card ul{margin:0;padding-left:18px;}
+  .steps-card li{font-size:13.5px;line-height:1.5;margin-bottom:8px;color:var(--navy);}
+  .steps-card li:last-child{margin-bottom:0;}
+  .note-card{background:var(--amber-bg);border:1px solid #EAD2A3;border-radius:14px;padding:12px 14px;font-size:12.5px;color:#6B4A0E;line-height:1.5;}
+  .note-label{font-weight:700;margin:0 0 3px;}
+
+  .complete-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px 16px;text-align:center;margin-bottom:10px;}
+  .complete-card h2{margin:0 0 6px;font-size:17px;}
+  .complete-card p{margin:0 0 14px;font-size:13px;color:var(--navy-soft);}
+  .reset-btn{background:var(--white);border:1px solid var(--turf);color:var(--turf);font-size:13px;font-weight:700;padding:10px 18px;border-radius:9px;}
+
+  svg .icon-cone{fill:var(--amber-fill);stroke:var(--amber);}
+  svg .kid-circ{fill:var(--green-bg);stroke:var(--green-line);}
+  svg .coach-circ{fill:var(--amber-bg);stroke:var(--amber);}
+  svg .def-circ{fill:var(--red-bg);stroke:var(--red);}
+  svg .lbl{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--navy);}
+  svg .lbl-sub{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;fill:var(--navy-soft);}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(function(){
+  var ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  var ICON_CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+  var ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>';
+
+  function football(cx, cy, r){
+    r = r || 10;
+    return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+(r*0.6)+'" fill="#6B4226" stroke="#4A2D19" stroke-width="0.5"/>' +
+           '<line x1="'+(cx-r*0.5)+'" y1="'+cy+'" x2="'+(cx+r*0.5)+'" y2="'+cy+'" stroke="#F7F0E6" stroke-width="1"/>';
+  }
+  function cone(cx, cy){
+    return '<polygon class="icon-cone" points="'+cx+','+(cy-14)+' '+(cx+11)+','+(cy+9)+' '+(cx-11)+','+(cy+9)+'" stroke-width="0.75"/>';
+  }
+  function kid(cx, cy, label){
+    label = label || "K";
+    return '<circle class="kid-circ" cx="'+cx+'" cy="'+cy+'" r="13" stroke-width="0.75"/>' +
+           '<text class="lbl" x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700">'+label+'</text>';
+  }
+  function coach(cx, cy){
+    var s = '<circle class="coach-circ" cx="'+cx+'" cy="'+cy+'" r="15" stroke-width="0.75"/>';
+    s += '<path d="M'+(cx-7)+' '+(cy+3)+' Q'+(cx-7)+' '+(cy-6)+' '+cx+' '+(cy-6)+' Q'+(cx+7)+' '+(cy-6)+' '+(cx+7)+' '+(cy+3)+' Z" fill="var(--navy)"/>';
+    s += '<ellipse cx="'+(cx+3)+'" cy="'+(cy+3)+'" rx="9" ry="2.5" fill="var(--navy)"/>';
+    return s;
+  }
+  function defender(cx, cy, label){
+    label = label || "D";
+    return '<circle class="def-circ" cx="'+cx+'" cy="'+cy+'" r="13" stroke-width="0.75"/>' +
+           '<text class="lbl" x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700">'+label+'</text>';
+  }
+  function xmark(cx, cy){
+    return '<text class="lbl" x="'+cx+'" y="'+(cy+6)+'" text-anchor="middle" font-size="18" font-weight="800">X</text>';
+  }
+  function O(cx, cy, label){
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="#FFFFFF" stroke="#111" stroke-width="2"/>' +
+           '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#111">'+label+'</text>';
+  }
+
+  var SVG_AGILITY_TOGETHER =
+    '<svg width="100%" viewBox="0 0 320 340" role="img"><title>Agility zig-zag, whole group together in one line</title>' +
+    '<text class="lbl-sub" x="160" y="18" text-anchor="middle" font-size="10.5">Agility - whole group, one line through</text>' +
+    kid(160,300,"K") +
+    '<path d="M160 286 L130 260 L190 225 L130 190 L190 155" fill="none" stroke="#C8C5B8" stroke-width="1.5" stroke-dasharray="4 4"/>' +
+    cone(130,260) + cone(190,225) + cone(130,190) + cone(190,155) +
+    '<line x1="190" y1="141" x2="160" y2="105" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    '<text class="lbl" x="160" y="90" text-anchor="middle" font-size="11" font-weight="700">Agility only tonight</text>' +
+    '<text class="lbl-sub" x="160" y="320" text-anchor="middle" font-size="10.5">2.5 yd downfield, ~5 yd lateral - quick, tight cuts</text>' +
+    '</svg>';
+
+  var SVG_ROUTE_CALL =
+    '<svg width="100%" viewBox="0 0 340 340" role="img"><title>Coach snaps to QB, one kid at a time runs whatever route is called</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">No cones - coach (hat) snaps to QB</text>' +
+    '<line x1="30" y1="140" x2="310" y2="140" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    coach(170,140) + football(170,160,7) +
+    kid(170,205,"QB") +
+    kid(110,140,"K") +
+    '<line x1="110" y1="127" x2="110" y2="55" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    '<circle class="kid-circ" cx="70" cy="235" r="9" stroke-width="0.75" opacity="0.5"/>' +
+    '<circle class="kid-circ" cx="70" cy="258" r="9" stroke-width="0.75" opacity="0.4"/>' +
+    '<circle class="kid-circ" cx="70" cy="281" r="9" stroke-width="0.75" opacity="0.3"/>' +
+    '<text class="lbl-sub" x="70" y="304" text-anchor="middle" font-size="9.5">Line - next kid up</text>' +
+    '<text class="lbl" x="170" y="45" text-anchor="middle" font-size="10.5" font-weight="700">Coach calls out the route -</text>' +
+    '<text class="lbl" x="170" y="59" text-anchor="middle" font-size="10.5" font-weight="700">catch in stride, keep running</text>' +
+    '<text class="lbl-sub" x="170" y="315" text-anchor="middle" font-size="10">One kid goes at a time, two balls so a drop doesn&#39;t stall the line</text>' +
+    '</svg>';
+
+  var SVG_HANDS_LINE =
+    '<svg width="100%" viewBox="0 0 260 320" role="img"><title>Hands drill - straight line, coach throws, kid catches, goes to back of line</title>' +
+    '<text class="lbl-sub" x="130" y="18" text-anchor="middle" font-size="10.5">Straight line - no routes, just catching</text>' +
+    coach(130,270) + football(130,290,7) +
+    '<path d="M130 254 L130 206" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    kid(130,190,"K") +
+    '<circle class="kid-circ" cx="130" cy="150" r="10" stroke-width="0.75" opacity="0.5"/>' +
+    '<circle class="kid-circ" cx="130" cy="120" r="10" stroke-width="0.75" opacity="0.4"/>' +
+    '<circle class="kid-circ" cx="130" cy="90" r="10" stroke-width="0.75" opacity="0.3"/>' +
+    '<text class="lbl-sub" x="130" y="60" text-anchor="middle" font-size="9.5">Line - waiting turn</text>' +
+    '<text class="lbl" x="130" y="230" text-anchor="middle" font-size="10.5" font-weight="700">Coach throws - kid catches -</text>' +
+    '<text class="lbl" x="130" y="244" text-anchor="middle" font-size="10.5" font-weight="700">goes to the back of the line</text>' +
+    '</svg>';
+
+  var SVG_SHORT_CROSS =
+    '<svg width="100%" viewBox="0 0 320 260" role="img"><title>Short cross drill - shotgun QB shuffle passes to a receiver crossing his face along the LOS</title>' +
+    '<text class="lbl-sub" x="160" y="18" text-anchor="middle" font-size="10.5">QB fakes deep, then shuffles it to the crosser</text>' +
+    '<line x1="20" y1="100" x2="300" y2="100" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    '<text class="lbl-sub" x="20" y="92" text-anchor="start" font-size="9">LOS</text>' +
+    kid(85,138,"QB") +
+    '<text class="lbl-sub" x="85" y="160" text-anchor="middle" font-size="9">shotgun, ~4 yd back</text>' +
+    kid(260,100,"K") +
+    '<circle class="kid-circ" cx="290" cy="85" r="9" stroke-width="0.75" opacity="0.5"/>' +
+    '<circle class="kid-circ" cx="290" cy="65" r="9" stroke-width="0.75" opacity="0.35"/>' +
+    '<text class="lbl-sub" x="285" y="45" text-anchor="middle" font-size="9">line, on the LOS</text>' +
+    '<path d="M255 108 Q170 118 100 112" fill="none" stroke="#C8C5B8" stroke-width="2" stroke-dasharray="4 4"/>' +
+    '<text class="lbl-sub" x="180" y="132" text-anchor="middle" font-size="9">turns 90&#176; - runs across the LOS, right in front of QB</text>' +
+    football(97,111,7) +
+    '<text class="lbl" x="97" y="90" text-anchor="middle" font-size="10" font-weight="700">shuffle pass</text>' +
+    '<path d="M95 105 L70 40" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    '<text class="lbl" x="55" y="30" text-anchor="middle" font-size="10" font-weight="700">runs up field</text>' +
+    '<text class="lbl-sub" x="160" y="230" text-anchor="middle" font-size="10">QB looks off deep first (fake), then shuffles it underneath</text>' +
+    '<text class="lbl-sub" x="160" y="244" text-anchor="middle" font-size="10">No routes otherwise - straight line reps, one at a time</text>' +
+    '</svg>';
+
+  var SVG_DEUCES =
+    '<svg width="100%" viewBox="0 0 340 300" role="img"><title>Deuces formation, full speed, soft defensive look</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">Deuces - regular plays plus W Backdoor shuffle pass</text>' +
+    xmark(90,55) + xmark(170,45) + xmark(250,55) +
+    '<text class="lbl-sub" x="170" y="80" text-anchor="middle" font-size="9.5">soft defense - no pressure, just a look</text>' +
+    '<line x1="30" y1="150" x2="310" y2="150" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    kid(60,150,"W") + kid(115,163,"X") + O(170,150,"C") + football(170,172,7) + kid(225,163,"Y") + kid(280,150,"Z") +
+    kid(195,215,"QB") +
+    kid(240,215,"RB") +
+    '<text class="lbl-sub" x="170" y="255" text-anchor="middle" font-size="10.5">Full speed - huddle, call, break, line up, execute</text>' +
+    '<text class="lbl-sub" x="170" y="269" text-anchor="middle" font-size="10.5">First live look at the shuffle pass - keep the catch-and-run cue too</text>' +
+    '</svg>';
+
+  var SVG_JUMP_PASS =
+    '<svg width="100%" viewBox="0 0 320 280" role="img"><title>Jumping the pass - MLB reads the cross and attacks the throw, not the catch</title>' +
+    '<text class="lbl-sub" x="160" y="18" text-anchor="middle" font-size="10.5">Whole defense together - jump the route, don&#39;t wait on the catch</text>' +
+    '<line x1="20" y1="150" x2="300" y2="150" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    '<text class="lbl-sub" x="20" y="142" text-anchor="start" font-size="9">LOS</text>' +
+    defender(170,80,"MLB") +
+    kid(110,150,"WR") +
+    coach(200,174) + football(200,192,7) +
+    '<text class="lbl-sub" x="200" y="210" text-anchor="middle" font-size="9">shotgun, ~3 yd back</text>' +
+    '<circle class="kid-circ" cx="70" cy="175" r="10" stroke-width="0.75" opacity="0.5"/>' +
+    '<circle class="kid-circ" cx="70" cy="200" r="10" stroke-width="0.75" opacity="0.4"/>' +
+    '<circle class="kid-circ" cx="70" cy="225" r="10" stroke-width="0.75" opacity="0.3"/>' +
+    '<text class="lbl-sub" x="70" y="245" text-anchor="middle" font-size="9">Line behind the WR</text>' +
+    '<path d="M110 138 Q170 95 225 108" fill="none" stroke="#C8C5B8" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowdown1)"/>' +
+    '<text class="lbl-sub" x="235" y="95" text-anchor="middle" font-size="9">5-yd cross</text>' +
+    '<path d="M172 93 Q185 98 197 105" fill="none" stroke="#B23B34" stroke-width="1.8" stroke-dasharray="3 3" marker-end="url(#arrowbreakdown1)"/>' +
+    '<text class="lbl-sub" x="130" y="60" text-anchor="middle" font-size="9">MLB reads it, then jumps</text>' +
+    '<text class="lbl" x="160" y="260" text-anchor="middle" font-size="10.5" font-weight="700">Ball&#39;s thrown - MLB attacks the catch point,</text>' +
+    '<text class="lbl" x="160" y="274" text-anchor="middle" font-size="10.5" font-weight="700">doesn&#39;t wait for the WR to secure it</text>' +
+    '</svg>';
+
+  var SVG_232_DEFENSE =
+    '<svg width="100%" viewBox="0 0 340 320" role="img"><title>2-3-2 defense, full 7v7, everybody in tonight</title>' +
+    '<text class="lbl-sub" x="170" y="18" text-anchor="middle" font-size="10.5">Full 7v7 - 7 on D, 5 running simulated offense</text>' +
+    '<text class="lbl-sub" x="300" y="70" text-anchor="middle" font-size="10">10 yd</text>' +
+    xmark(110,70) + xmark(230,70) +
+    '<text class="lbl-sub" x="300" y="150" text-anchor="middle" font-size="10">5 yd</text>' +
+    xmark(70,150) + xmark(170,150) + xmark(270,150) +
+    '<text class="lbl-sub" x="300" y="220" text-anchor="middle" font-size="10">0 yd (line)</text>' +
+    xmark(110,220) + xmark(230,220) +
+    '<line x1="30" y1="270" x2="310" y2="270" stroke="var(--navy-soft)" stroke-width="1.5"/>' +
+    '<text class="lbl-sub" x="170" y="290" text-anchor="middle" font-size="10.5">Carry over whatever Ferguson emphasized in group drills</text>' +
+    football(170,265,7) +
+    '<text class="lbl" x="170" y="305" text-anchor="middle" font-size="10.5" font-weight="700">Full speed, one-hand touch to finish</text>' +
+    '</svg>';
+
+  var ARROW_DEFS =
+    '<svg width="0" height="0" style="position:absolute">' +
+    '<defs>' +
+    '<marker id="arrowdown1" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#C8C5B8" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowcross1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#C8C5B8" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowcross2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="var(--amber)" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowbreakdown1" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#B23B34" stroke-width="1.5"/></marker>' +
+    '<marker id="arrowbreakdown2" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L5 8L10 0" fill="none" stroke="#6E9A63" stroke-width="1.5"/></marker>' +
+    '</defs></svg>';
+
+  var BLOCKS = [
+    {
+      id:"offwarmup", label:"Offensive Warm-up - Agility", plannedTime:"6:00", duration:5, diagram:SVG_AGILITY_TOGETHER,
+      steps:[
+        "Whole group together - zig-zag agility only tonight, routes move to the group drills next.",
+        "2.5 yd downfield, ~5 yd lateral - quick, tight cuts."
+      ],
+      note:"Short warm-up tonight - the extra time is going into the new group drills."
+    },
+    {
+      id:"water1", label:"Water break", plannedTime:"6:05", duration:1, diagram:null,
+      steps:["Quick sip, keep the momentum."],
+      note:null
+    },
+    {
+      id:"offdrills", label:"Offensive Group Drills", plannedTime:"6:06", duration:12, diagram:SVG_ROUTE_CALL, diagram2:SVG_HANDS_LINE, diagram3:SVG_SHORT_CROSS,
+      diagramLabel1:"Routes station", diagramLabel2:"Hands station - straight catching", diagramLabel3:"Hands station - short cross (shuffle pass)",
+      steps:[
+        "Split into two groups, 6 minutes each station, switch once.",
+        "Routes station: coach lines up as Center (hat) and snaps to QB. One kid at a time calls up and runs a route from memory - emphasize catching in stride and running through it, especially on crosses.",
+        "Hands station, part 1: straight-line catching - coach throws, kid catches, goes to the back of the line. No routes.",
+        "Hands station, part 2: the short cross. QB in shotgun ~4 yards back. Kids run across the LOS right in front of the QB's face, QB fakes deep first, then shuffles it to the crosser. Receiver turns upfield after the catch.",
+        "Keep the shuffle pass at walk speed until the timing looks clean, then speed it up."
+      ],
+      note:"Scaffolding up - the routes are already known, so tonight's about lining up and running them for real, plus getting the new shuffle-pass mechanic on tape for the first time."
+    },
+    {
+      id:"offline", label:"Offense from the Line", plannedTime:"6:18", duration:13, diagram:SVG_DEUCES,
+      steps:[
+        "Full speed, full field, soft defensive look - straight into it from group drills, no break.",
+        "Run regular plays plus the new Deuces - W Backdoor shuffle pass live for the first time.",
+        "Keep reinforcing the catch-and-run cue on crosses.",
+        "Next game is two weeks out - no pressure to look clean tonight, just get real reps."
+      ],
+      note:"First live look at the shuffle pass - expect it to be rough. That's fine, there's time before the next game."
+    },
+    {
+      id:"water2", label:"Halftime - Water", plannedTime:"6:31", duration:2, diagram:null,
+      steps:["Longer break here - the one water stop for the night."],
+      note:null
+    },
+    {
+      id:"defdrills", label:"Defensive Drill - Jumping the Pass", plannedTime:"6:33", duration:12, diagram:SVG_JUMP_PASS,
+      steps:[
+        "Whole defense together tonight - no station split.",
+        "Coach lines up at QB in shotgun, ~3 yards behind the LOS.",
+        "One kid at middle linebacker. One WR lines up left of the QB, on the LOS - the rest of the kids queue behind him.",
+        "WR runs a 5-yard cross. MLB reads it as it develops.",
+        "Once the ball is thrown, the MLB has to jump the route and attack the ball - not wait for the WR to catch it first.",
+        "Rotate every rep - new MLB, new WR, keep the line moving."
+      ],
+      note:"This is the one focus tonight - getting defenders to attack the catch point instead of trailing and reacting after the catch."
+    },
+    {
+      id:"defline", label:"Defense from the Line", plannedTime:"6:45", duration:15, diagram:SVG_232_DEFENSE,
+      steps:[
+        "Full 7v7 - all 12 kids in tonight: 7 on defense, 5 running simulated offense.",
+        "Carry over whatever Coach Ferguson emphasized in group drills - attacking the ball, 4-2-1 fits, or both.",
+        "Full speed, one-hand touch to finish."
+      ],
+      note:"Only 12 total tonight, so this is everybody, every rep - no separate live combine needed."
+    },
+    {
+      id:"huddle", label:"Huddle / Wrap-up", plannedTime:"~7:00", duration:null, diagram:null,
+      steps:[
+        "Team cheer.",
+        "Reminder: next game is two weeks out - no urgency, just building reps.",
+        "Quick recap of what's new tonight: shuffle pass on offense, whatever Coach Ferguson installed on defense."
+      ],
+      note:"Post-practice - not part of the 60-minute clock."
+    }
+  ];
+
+  var view = "home";
+  var viewBlockIndex = null;
+
+  var practice = {
+    running:false,
+    complete:false,
+    currentIndex:-1,
+    currentBlockStart:null,
+    paused:false,
+    pausedAt:null,
+    durations: BLOCKS.map(function(b){ return b.duration; }),
+    actualStarts: [],
+    bellPlayedIndex:-1
+  };
+
+  var tickHandle = null;
+  var audioCtx = null;
+
+  function beep(){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = 880;
+      g.gain.value = 0.001;
+      o.connect(g); g.connect(audioCtx.destination);
+      var now = audioCtx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      o.start(now); o.stop(now + 0.55);
+      var o2 = audioCtx.createOscillator();
+      var g2 = audioCtx.createGain();
+      o2.type = "sine"; o2.frequency.value = 1180;
+      g2.gain.value = 0.001;
+      o2.connect(g2); g2.connect(audioCtx.destination);
+      g2.gain.exponentialRampToValueAtTime(0.22, now + 0.6);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 1.05);
+      o2.start(now + 0.58); o2.stop(now + 1.1);
+    }catch(e){}
+  }
+
+  function fmtClock(ts){
+    var d = new Date(ts);
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; if(h === 0) h = 12;
+    return h + ":" + (m < 10 ? "0" : "") + m + " " + ampm;
+  }
+  function fmtCountdown(ms){
+    var neg = ms < 0;
+    var abs = Math.abs(ms);
+    var totalSec = Math.floor(abs / 1000);
+    var mm = Math.floor(totalSec / 60);
+    var ss = totalSec % 60;
+    return (neg ? "-" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+  }
+
+  function scheduledStart(i){
+    if(!practice.running && practice.currentIndex === -1) return null;
+    if(i < practice.currentIndex) return practice.actualStarts[i] || null;
+    if(i === practice.currentIndex) return practice.currentBlockStart;
+    var t = practice.currentBlockStart + (practice.durations[practice.currentIndex] || 0) * 60000;
+    for(var k = practice.currentIndex + 1; k < i; k++){
+      t += (practice.durations[k] || 0) * 60000;
+    }
+    return t;
+  }
+
+  function nowRef(){
+    return practice.paused ? practice.pausedAt : Date.now();
+  }
+
+  function startPractice(){
+    practice.running = true;
+    practice.complete = false;
+    practice.currentIndex = 0;
+    practice.currentBlockStart = Date.now();
+    practice.paused = false;
+    practice.actualStarts = [Date.now()];
+    practice.bellPlayedIndex = -1;
+    startTicker();
+    render();
+  }
+
+  function nextBlock(){
+    if(practice.currentIndex < BLOCKS.length - 1){
+      practice.currentIndex++;
+      practice.currentBlockStart = Date.now();
+      practice.actualStarts[practice.currentIndex] = Date.now();
+      practice.paused = false;
+      if(view === "block"){
+        viewBlockIndex = practice.currentIndex;
+        window.scrollTo(0,0);
+      }
+    } else {
+      practice.running = false;
+      practice.complete = true;
+      stopTicker();
+      if(view === "block"){
+        goHome();
+        return;
+      }
+    }
+    render();
+  }
+
+  function addTime(min){
+    if(practice.durations[practice.currentIndex] == null) return;
+    practice.durations[practice.currentIndex] += min;
+    render();
+  }
+
+  function togglePause(){
+    if(practice.paused){
+      var pausedDur = Date.now() - practice.pausedAt;
+      practice.currentBlockStart += pausedDur;
+      practice.paused = false;
+    } else {
+      practice.paused = true;
+      practice.pausedAt = Date.now();
+    }
+    render();
+  }
+
+  function resetPractice(){
+    practice = {
+      running:false, complete:false, currentIndex:-1, currentBlockStart:null,
+      paused:false, pausedAt:null,
+      durations: BLOCKS.map(function(b){ return b.duration; }),
+      actualStarts: [], bellPlayedIndex:-1
+    };
+    stopTicker();
+    render();
+  }
+
+  function startTicker(){
+    stopTicker();
+    tickHandle = setInterval(function(){
+      var d = practice.durations[practice.currentIndex];
+      if(practice.running && !practice.paused && d != null){
+        var remaining = d * 60000 - (Date.now() - practice.currentBlockStart);
+        if(remaining <= 0 && practice.bellPlayedIndex !== practice.currentIndex){
+          practice.bellPlayedIndex = practice.currentIndex;
+          beep();
+        }
+      }
+      render();
+    }, 1000);
+  }
+  function stopTicker(){
+    if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
+  }
+
+  function goHome(){ view = "home"; viewBlockIndex = null; render(); window.scrollTo(0,0); }
+  function openBlockView(i){ view = "block"; viewBlockIndex = i; render(); window.scrollTo(0,0); }
+
+  function esc(s){
+    var d = document.createElement("div");
+    d.textContent = s == null ? "" : s;
+    return d.innerHTML;
+  }
+
+  function renderTimerBar(){
+    var idx = practice.currentIndex;
+    var b = BLOCKS[idx];
+    var isUntimed = practice.durations[idx] == null;
+    var html = '<div class="timerbar">';
+    html += '<div class="timerbar-top"><div><p class="timerbar-label">' + (practice.paused ? "PAUSED" : "NOW") + '</p><p class="timerbar-name">' + esc(b.label) + '</p></div>';
+    if(isUntimed){
+      html += '<div class="timerbar-clock untimed">Untimed</div></div>';
+    } else {
+      var remaining = practice.durations[idx] * 60000 - (nowRef() - practice.currentBlockStart);
+      var isOver = remaining < 0;
+      html += '<div class="timerbar-clock' + (isOver ? " over" : "") + '">' + fmtCountdown(remaining) + '</div></div>';
+    }
+    html += '<div class="timerbar-row">';
+    if(!isUntimed){
+      html += '<button class="tb-btn" data-add="1">+1m</button>';
+      html += '<button class="tb-btn" data-add="3">+3m</button>';
+      html += '<button class="tb-btn" data-add="5">+5m</button>';
+    }
+    html += '<button class="tb-btn pause" data-action="pause">' + (practice.paused ? "Resume" : "Pause") + '</button>';
+    html += '<button class="tb-btn next" data-action="next">' + (idx === BLOCKS.length-1 ? "Finish" : "Next \u203a") + '</button>';
+    html += '</div></div>';
+    return html;
+  }
+
+  function render(){
+    var html = "";
+
+    if(view !== "block"){
+      html += '<div class="topbar"><a href="index.html" class="home-link" aria-label="Back to home">' + ICON_HOME + '</a><h1>Practice - Mon, Aug 31</h1><p class="sub">Beech Springs Middle - 6:00-7:00 PM</p></div>';
+    }
+
+    if(practice.running){
+      html += renderTimerBar();
+    }
+
+    if(view === "home"){
+      html += '<div class="content">';
+
+      if(!practice.running && !practice.complete){
+        html += '<button class="start-btn" data-action="start">Start practice</button>';
+      }
+
+      if(practice.complete){
+        html += '<div class="complete-card"><h2>Practice complete</h2><p>Good first look at the shuffle pass. Reset when you\'re ready for next time.</p><button class="reset-btn" data-action="reset">Reset for next practice</button></div>';
+      }
+
+      BLOCKS.forEach(function(b, i){
+        var isNow = practice.running && i === practice.currentIndex;
+        var isDone = practice.currentIndex > i || (practice.complete && true);
+        var isUntimed = b.duration == null;
+        var cls = "block-card" + (isNow ? " now" : "") + (isDone && !isNow ? " done" : "") + (isUntimed ? " untimed" : "");
+        var timeLabel;
+        if(isUntimed){
+          timeLabel = "Post-practice - untimed";
+        } else if(practice.running || practice.complete){
+          if(i < practice.currentIndex || practice.complete){
+            timeLabel = practice.actualStarts[i] ? fmtClock(practice.actualStarts[i]) + " - done" : "done";
+          } else if(isNow){
+            timeLabel = "In progress";
+          } else {
+            timeLabel = "~" + fmtClock(scheduledStart(i)) + " (est.)";
+          }
+        } else {
+          timeLabel = b.plannedTime + " - " + b.duration + " min";
+        }
+        html += '<button class="' + cls + '" data-open="' + i + '">';
+        html += '<div class="block-num">' + (i+1) + '</div>';
+        html += '<div class="block-info"><p class="block-label">' + esc(b.label) + '</p><p class="block-time">' + timeLabel + '</p></div>';
+        html += '<span class="icon-chev">' + ICON_CHEV + '</span></button>';
+      });
+      html += '</div>';
+    }
+
+    if(view === "block" && viewBlockIndex != null){
+      var b2 = BLOCKS[viewBlockIndex];
+      var dtime = b2.duration == null ? "Untimed - post-practice" : (b2.plannedTime + ' - ' + b2.duration + ' min');
+      html += '<div class="detail-topbar"><a href="index.html" class="home-link" aria-label="Back to home">' + ICON_HOME + '</a><button class="icon-btn" data-nav="home">' + ICON_BACK + '</button>';
+      html += '<div class="detail-titles"><p class="dname">' + esc(b2.label) + '</p><p class="dtime">' + esc(dtime) + '</p></div></div>';
+      html += '<div class="content">';
+      html += '<div class="steps-card"><ul>';
+      b2.steps.forEach(function(s){ html += '<li>' + esc(s) + '</li>'; });
+      html += '</ul></div>';
+      if(b2.diagram){
+        html += '<p class="block-time" style="margin:0 0 6px 2px;font-weight:700;">' + (b2.diagramLabel1 || 'Diagram') + '</p>';
+        html += '<div class="diagram-card">' + b2.diagram + '</div>';
+      }
+      if(b2.diagram2){
+        html += '<p class="block-time" style="margin:14px 0 6px 2px;font-weight:700;">' + (b2.diagramLabel2 || 'Diagram (continued)') + '</p>';
+        html += '<div class="diagram-card">' + b2.diagram2 + '</div>';
+      }
+      if(b2.diagram3){
+        html += '<p class="block-time" style="margin:14px 0 6px 2px;font-weight:700;">' + (b2.diagramLabel3 || 'Diagram (continued)') + '</p>';
+        html += '<div class="diagram-card">' + b2.diagram3 + '</div>';
+      }
+      if(b2.note){
+        html += '<div class="note-card"><p class="note-label">Coaching note</p><p>' + esc(b2.note) + '</p></div>';
+      }
+      html += '</div>';
+    }
+
+    document.getElementById("app").innerHTML = ARROW_DEFS + html;
+    attachHandlers();
+  }
+
+  function attachHandlers(){
+    var app = document.getElementById("app");
+    var startBtn = app.querySelector('[data-action="start"]');
+    if(startBtn) startBtn.addEventListener("click", startPractice);
+    var resetBtn = app.querySelector('[data-action="reset"]');
+    if(resetBtn) resetBtn.addEventListener("click", resetPractice);
+    var nextBtn = app.querySelector('[data-action="next"]');
+    if(nextBtn) nextBtn.addEventListener("click", nextBlock);
+    var pauseBtn = app.querySelector('[data-action="pause"]');
+    if(pauseBtn) pauseBtn.addEventListener("click", togglePause);
+    app.querySelectorAll('[data-add]').forEach(function(el){
+      el.addEventListener("click", function(){ addTime(parseInt(el.getAttribute("data-add"), 10)); });
+    });
+    app.querySelectorAll('[data-open]').forEach(function(el){
+      el.addEventListener("click", function(){ openBlockView(parseInt(el.getAttribute("data-open"), 10)); });
+    });
+    var navHome = app.querySelector('[data-nav="home"]');
+    if(navHome) navHome.addEventListener("click", goHome);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
